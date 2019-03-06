@@ -25,7 +25,7 @@ def load_config(force_build = False):
 def prerun_check():
 	load_config()
 	_init_run = config['DEFAULT']['_init_run']
-	print(_init_run)
+	# print(_init_run)
 	if _init_run == 'yes':
 		print('building images')
 		from preprocess import preprocess

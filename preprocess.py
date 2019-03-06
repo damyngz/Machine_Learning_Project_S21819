@@ -74,7 +74,7 @@ def convert_to_thumbnail():
 			
 	#test images
 	for file in os.listdir(test_path_thumb):
-		img = Image.open(test_path_img+grass_type+'/'+file)
+		img = Image.open(test_path_img+'/'+file)
 		img.resize((resize_dim,resize_dim),Image.BICUBIC).save(test_path_thumb+'/'+file)
 
 #load train images into array
