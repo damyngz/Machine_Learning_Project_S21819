@@ -1,4 +1,4 @@
-class_ = {
+CLASS = {
 1:	'Black-grass',
 2:	'Charlock',
 3:	'Cleavers',
