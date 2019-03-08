@@ -12,3 +12,23 @@ CLASS = {
 11:	'Small-flowered Cranesbill',
 12: 'Sugar beet'
 }
+
+#default config params
+
+DEFAULT = {
+'_init_run' : 'no'
+}
+
+#default config hyperparam section
+CFG_DEFAULT_HYPERPARAM = {
+'pooling_scheme':	[0,0,1,0,0,1,0,0,1,0,0,1,0,1],	
+'pool_windows'	:	[5,3,3,3,3],
+'conv_windows' 	: 	[64,64,64,64,64,64,64,64,64],
+'img_size' 		:	128,
+'num_channels'	:	3
+}
+
+
+CFG_DEFAULT_BUILD = {'DEFAULT' : DEFAULT,
+			'CFG_DEFAULT_HYPERPARAM' : CFG_DEFAULT_HYPERPARAM
+			}

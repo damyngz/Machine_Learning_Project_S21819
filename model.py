@@ -11,19 +11,62 @@ class CNN:
 		self.graph = tf.Graph()
 		self.save_path = save_path
 		
+		#load hyperparams from config.ini
+		self.conv_windows 	= config.return_config_value('HYPER','conv_windows')
+		self.img_size 		= config.return_config_value('HYPER','img_size')
+		self.num_channels	= config.return_config_value('HYPER','num_channels')
+		
 		#TODO shift to config params
-		self.conv_windows = [12,8] #conv windows
-		self.num_filters = 20	#number of convolution filers
-		self.num_channels = 3	#RGB
+		
+		#counter determining number of layers in model
+		self.layers = 0
 		
 		#logging
 		print('{} layers detected'.format(len(self.conv_windows)))
 		
 		with tf.device('/device:GPU:0'):
-			with self.graph_as_default():
 			
+			def convolution(input,
+							num_input_filters,
+							num_filters,
+							window_size,
+							activation,
+							stride=1,
+							padding='SAME'):
+				
+				self.layers +=1
+				stride_window = [1,stride,stride,1]
+				layer_name = 'conv_{}_{}'.format(num_filters,self.layers)
+				w = tf.Variable(tf.truncated_normal([window_size,window_size,num_input_filters,num_filters),
+														stddev = 1.0/np.sqrt(num_filters*window_size*window_size),
+														name = '{}_w'.format(layer_name))
+														
+				b = tf.Variable(tf.zeros(num_filters),name = '{}_b'.format(layer_name))
+				
+				conv = tf.nn.convo2d(input, 
+									filter=w,
+									strides=stride_window,
+									padding=padding) + b
+				
+				#TODO
+				#apply normalization?
+				syn_output = activation(conv)
+				
+				return syn_output,window_size
+			
+			with self.graph_as_default():
+				input_vectors = [0 for i in range(len(conv_windows))]
+				input_vectors[0] = self.input
+				
+				self.image = tf.placeholder(tf.float32,[self.img_size*self.img_size*self.num_channels]
 				for l in range(len(conv_windows)):
+					if input_vector is None:
+						input_vector = self.input_image
+						prev_num_filters = self.num_channels
 					
+					input_vector,prev_num_filters = convolution(input = input_vector,num_input_filters = prev_num_filters, window_size = conv_windows[l],activation = (tf.nn.relu),stride = 2, padding = 'VALID')
+					
+					#TODO recursion params here
 				W_conv1 = tf.Variable(tf.truncated_normal([self.conv_window[0], self.conv_window[0], self.num_channels, self.num_filters], stddev=1.0/np.sqrt(self.num_channels*self.window_size*self.window_size)), name='weights_1')
 				b_conv1 = tf.Variable(tf.zeros([NUM_CONV1_FILTERS]), name='biases_1')
 				
