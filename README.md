@@ -1,10 +1,10 @@
 # Machine_Learning_Project_S21819
 
 CREATE DIRECTORIES IN WORKING FOLDER:
--<working_directory>/data/train/img
--<working_directory>/data/test/thumb
--<working_directory>/data/train/img
--<working_directory>/data/test/thumb
+-<working_directory>/data/train/img  
+-<working_directory>/data/test/thumb  
+-<working_directory>/data/train/img  
+-<working_directory>/data/test/thumb  
 
 To RUN:  
 -Create a virtual environment and install the relevant modules  
