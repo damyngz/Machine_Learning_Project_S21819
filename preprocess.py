@@ -25,7 +25,6 @@ from skimage.transform import resize as imresize
 
 from config import flag
 from util import *
-resize_dim = 128
 train_path_img = os.getcwd() + '/data/train/img/'
 train_path_thumb = os.getcwd() + '/data/train/thumb/'
 test_path_img = os.getcwd() + '/data/test/img/'
@@ -66,6 +65,8 @@ def create_dummy_files():
 		imageio.imsave(fn,dummy)
 		
 def convert_to_thumbnail():	
+
+	resize_dim = config['HYPERPARAMETERS']['img_size']
 	#train images
 	for _,grass_type in CLASS.items():
 		for file in os.listdir(train_path_img+grass_type):
