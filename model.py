@@ -8,7 +8,7 @@ from util import *
 #create config params to store network params?
 #static params kept for easy reference and editing, can be made dynamic by calling util
 
-
+working_dir = '/graphs/'
 # tf.Session(config = tf.ConfigProto(log_device_replacement=True))
 def generate_save_path(pooling_scheme,dense_scheme):
 	s = os.getcwd()
@@ -20,7 +20,8 @@ def generate_save_path(pooling_scheme,dense_scheme):
 	for i in dense_scheme:
 		s+= '{}d'.format(i)
 		
-	return s
+	return working_dir + s
+	
 class CNN:
 	def __init__(self):
 		self.graph = tf.Graph()
@@ -260,5 +261,4 @@ class CNN:
 				self.saver = tf.train.Saver()
 				
 if __name__ == '__main__':
-	model = CNN(save_path = os.getcwd()+'/graphs/cnn.ckpt',
-				padding = 'VALID')
+	model = CNN()
