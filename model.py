@@ -100,7 +100,11 @@ class CNN:
 				dense = tf.matmul(input,w) + b_fc
 				syn_output = activation(dense)
 				
-				return syn_output
+				return syn_output,num_neurons,layer_name
+				
+				#linear activation
+				def linear(x):
+					return x
 			
 			with self.graph_as_default():
 				self.train_image = tf.placeholder(tf.float32, shape=[1,self.img_size*self.img_size*self.num_channels])
@@ -109,6 +113,8 @@ class CNN:
 
 				conv_iter,pool_iter = 0,0
 				layers = []
+				
+				input_vector = None
 				for l in range(len(self.pooling_scheme)):
 					if input_vector is None:
 						input_vector = self.train_image
@@ -141,24 +147,39 @@ class CNN:
 				if (pool_iter+conv_iter) != len(self.pooling_scheme):
 					raise RunTimeWarning('{} convolution layers and {} pooling layers were added, but there are {} layers in pooling scheme. check config.ini!'.format(conv_iter,pool_iter,len(self.pooling_scheme)))
 					
-				#iterate layer names
-				for layer in layers:
-					print(layer)
+				
 					
 				#flatten filters and add dense layer(s)
 				
 				dim = input_vector.get_shape()[1].value * input_vector.get_shape()[2].value * input_vector.get_shape()[3].value 
 				conv_out = tf.reshape(input_vector, [-1, dim]) #flatten filters into single image
 				
-				dense(conv_out,
-						input_dim = dim,
-						num_neurons = num_neurons,activation)
-				fc_ = tf.nn.relu(tf.matmul(pool_2_flat,W_fc) + b_fc)
-				
+				input_vector = None
+				for i in range(len(dense_scheme)):
+					if input_vector = None:
+						input_vector = conv_out
+						prev_num_filters = dim
+						
+					
+					input_vector,prev_num_filters, layer = dense(input_vector,
+								input_dim = prev_num_filters,
+								num_neurons = self.dense_scheme[i],
+								acivation = tf.nn.relu)
+						    
+					layers.append(layer)
+
+				#iterate layer names
+				for layer in layers:
+					print(layer)
+					
 				#output layer
-				logits = tf.matmul(fc_, W_out) + b_out
+				self.logits = tf.dense(input_vector,
+										input_dim = prev_num_filters,
+										num_neurons = len(list(CLASSES)),
+										activation = linear)
+									
 				
-				#saver and predictions
-				#[-1] to dim neccessary?
-				self.train_prediction = self.logits[-1] 
+				#post-processing
+				self.prediction = 
+				self.train_prediction = self.logits
 				self.saver = tf.train.Saver()
