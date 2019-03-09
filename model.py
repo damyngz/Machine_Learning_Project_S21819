@@ -94,9 +94,12 @@ class CNN:
 						prev_num_filters = self.num_channels
 						
 					if pooling_scheme[l] == 1:
-						#TODO add pooling layer function
+						input_vector = pool(input = input_vector,
+											window_size = self.pool_windows[pool_iter],
+											stride = 2,
+											padding = "VALID")
 						pool_iter+=1
-						pass
+						
 					elif pooling_scheme[l] == 0:
 						input_vector,prev_num_filters = convolution(input = input_vector,
 																	num_input_filters = prev_num_filters,
@@ -111,30 +114,12 @@ class CNN:
 					
 					input_vector,prev_num_filters = convolution(input = input_vector,num_input_filters = prev_num_filters, window_size = conv_windows[l],activation = (tf.nn.relu),stride = 2, padding = 'VALID')
 					
-					#TODO recursion params here
-				W_conv1 = tf.Variable(tf.truncated_normal([self.conv_window[0], self.conv_window[0], self.num_channels, self.num_filters], stddev=1.0/np.sqrt(self.num_channels*self.window_size*self.window_size)), name='weights_1')
-				b_conv1 = tf.Variable(tf.zeros([NUM_CONV1_FILTERS]), name='biases_1')
+				#check layers constructed properly
+				if (pool_iter+conv_iter) != len(self.pooling_scheme):
+					raise RunTimeWarning('{} convolution layers and {} pooling layers were added, but there are {} layers in pooling scheme. check config.ini!'.format(conv_iter,pool_iter,len(self.pooling_scheme)))
+	
+				#flatten filters and add dense layer(s)
 				
-				W_conv2 = tf.Variable(tf.truncated_normal([5, 5, NUM_CONV1_FILTERS, NUM_CONV2_FILTERS], stddev=1.0/np.sqrt(NUM_CONV1_FILTERS*5*5)), name='weights_2')
-				b_conv2 = tf.Variable(tf.zeros([NUM_CONV2_FILTERS]), name='biases_2')
-				
-				W_fc = tf.Variable(tf.truncated_normal([dim,NUM_FC_NEURONS], stddev=1.0/np.sqrt(dim)), name='weights_3')
-				b_fc = tf.Variable(tf.zeros([NUM_FC_NEURONS]), name='biases_3')
-				
-				W_out = tf.Variable(tf.truncated_normal([NUM_FC_NEURONS, NUM_CLASSES], stddev=1.0/np.sqrt(NUM_FC_NEURONS)), name='weights_4')
-				b_out = tf.Variable(tf.zeros([NUM_CLASSES]), name='biases_4')
-				
-				#input layer
-				#-1 neccessary?
-				images = tf.reshape(images, [-1, IMG_SIZE, IMG_SIZE, NUM_CHANNELS])
-				
-				#layers
-				#TODO 6-9 layers CNN with max_pooling?
-				
-				conv_1 = tf.nn.relu(tf.nn.conv2d(images, W_conv1, [1, 1, 1, 1], padding='VALID') + b_conv1)
-				pool_1 = tf.nn.max_pool(conv_1, ksize= [1, 2, 2, 1], strides= [1, 2, 2, 1], padding='VALID', name='pool_1')
-				conv_2 = tf.nn.relu(tf.nn.conv2d(pool_1, W_conv2, [1, 1, 1, 1], padding='VALID') + b_conv2)
-				pool_2 = tf.nn.max_pool(conv_2, ksize= [1, 2, 2, 1], strides= [1, 2, 2, 1], padding='VALID', name='pool_2')
 				dim = pool_2.get_shape()[1].value * pool_2.get_shape()[2].value * pool_2.get_shape()[3].value 
 				pool_2_flat = tf.reshape(pool_2, [-1, dim]) #flatten 3 channels into single channel
 				fc_ = tf.nn.relu(tf.matmul(pool_2_flat,W_fc) + b_fc)
