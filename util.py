@@ -13,6 +13,10 @@ CLASS = {
 12: 'Sugar beet'
 }
 
+CLASS_INVERSE = {}
+for class_,type_ in CLASS.items():
+	CLASS_INVERSE[type_] = class_
+
 #default config params
 
 DEFAULT = {
@@ -28,6 +32,9 @@ CFG_DEFAULT_HYPERPARAM = {
 'img_size' 		:	128,
 'num_channels'	:	3,
 'beta'			:	0.0001,
+'num_epochs'	:	10,
+'batch_size'	:	1,
+'seed'			:	10
 }
 
 CFG_DEFAULT_HYPERPARAM_LEARNING_RATE = {

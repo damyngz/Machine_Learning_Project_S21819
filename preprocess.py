@@ -36,7 +36,6 @@ def preprocess():
 	print('preprocess')
 	create_dummy_files()
 	convert_to_thumbnail()
-	#flag config
 	flag('_init_run','no')
 	
 #dummy testing file
@@ -84,9 +83,7 @@ def load_train_images():
 	for _,grass_type in CLASS.items():
 		for file in os.listdir(train_path_thumb+grass_type):
 			img = imageio.imread(train_path_thumb+grass_type+'/'+file)
-			# print(img)
-			# print('{} {}'.format(file,img.shape))
-			x.append(img)
+			x.append([img,grass_type])
 	return x
 	
 def load_test_images():

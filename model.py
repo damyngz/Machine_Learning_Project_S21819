@@ -5,8 +5,7 @@ import numpy as np
 import os
 from util import *
 
-#create config params to store network params?
-#static params kept for easy reference and editing, can be made dynamic by calling util
+#TODO implement batch 
 
 working_dir = '/graphs/'
 # tf.Session(config = tf.ConfigProto(log_device_replacement=True))
@@ -34,6 +33,7 @@ class CNN:
 		self.conv_windows 	= return_config_value('HYPERPARAMETERS','conv_windows',dtype=ListInteger)
 		self.pool_windows	= return_config_value('HYPERPARAMETERS','pool_windows',dtype=ListInteger)
 		self.beta_decay		= return_config_value('HYPERPARAMETERS','beta',dtype=Float)
+		self.seed			= return_config_value('HYPERPARAMETERS','seed',dtype=Integer)
 		
 		#learn rate params
 		self.learn_rate 	= return_config_value('LEARNING_RATE','learning_rate',dtype=Float)
@@ -252,6 +252,7 @@ class CNN:
 				#implement gradient clipping?
 				
 				self.prediction = tf.argmax(self.logits,1)
+				self.correct_prediction = tf.cast(tf.equal(tf.argmax(self.logits, 1), tf.argmax(self.train_label, 1)), tf.float32)
 				self.cross_entropy = tf.nn.softmax_cross_entropy_with_logits_v2(self.logits,self.train_label)
 				self.loss = tf.reduce_mean(self.cross_entropy) + self.regularizer
 				self.train_step = self.optimizer.minimize(self.loss)
@@ -260,5 +261,46 @@ class CNN:
 													dense_scheme = self.dense_scheme)
 				self.saver = tf.train.Saver()
 				
+def load_model(model):
+	with tf.Session(graph=model.graph)as sess:
+		tf.global_variables_initializer().run()
+		
+		save_path = model.saver.save(sess, model.data_path)
+		print("Model saved in path: %s" % save_path)
+	
+def train_model(model, data, labels, shuffle = False, preds = [0,0]):
+
+	seed = model.seed
+	iter = [i for i in range(len(data))]
+	np.random.shuffle(iter)
+	num_epochs = return_config_value('HYPERPARAMETERS','num_epochs')
+	
+
+	with tf.Session(graph=model.graph) as sess:
+		model.saver.restore(sess,model.data_path)
+		predictions = []
+		tf.set_random_seed(seed)
+		
+		for epoch in range(num_epochs):
+			preds = [0,0]
+			for step in iter:			
+				feed_dict = {}	
+				# x = np.reshape(data[step], (data[step].shape[0], 1))
+				# y = np.reshape(labels[step], (1, 1))
+
+				feed_dict[model.train_data] = x[step]
+				feed_dict[model.train_labels] = y[step]
+				_, score, pred = sess.run([model.train_step, model.correct_prediction, model.logits], feed_dict=feed_dict)
+				
+				preds.append(score)
+
+	
+			accuracy = preds[0]	/(sum(preds))		
+			print(accuracy)
+			
+		save_path = model.saver.save(sess, model.data_path)
+		print("Model saved in path: %s" % save_path)
+	return model, accuracy
+	
 if __name__ == '__main__':
 	model = CNN()
