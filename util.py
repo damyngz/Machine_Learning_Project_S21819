@@ -26,7 +26,8 @@ CFG_DEFAULT_HYPERPARAM = {
 'pool_windows'	:	[5,3,3,3,3],
 'conv_windows' 	: 	[64,64,64,64,64,64,64,64,64],
 'img_size' 		:	128,
-'num_channels'	:	3
+'num_channels'	:	3,
+'beta'			:	0.0001,
 }
 
 CFG_DEFAULT_HYPERPARAM_LEARNING_RATE = {

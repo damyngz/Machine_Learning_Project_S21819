@@ -10,11 +10,20 @@ from util import *
 
 
 # tf.Session(config = tf.ConfigProto(log_device_replacement=True))
-
+def generate_save_path(pooling_scheme,dense_scheme):
+	s = os.getcwd()
+	for i in pooling_scheme:
+		if i != 0:
+			s+='_{}'.format(i)
+		else:
+			s+='_p'
+	for i in dense_scheme:
+		s+= '{}d'.format(i)
+		
+	return s
 class CNN:
-	def __init__(self,save_path,padding = 'VALID'):
+	def __init__(self):
 		self.graph = tf.Graph()
-		self.save_path = save_path
 
 		#load hyperparams from config.ini
 		self.img_size 		= return_config_value('HYPERPARAMETERS','img_size',dtype=Integer)
@@ -23,7 +32,7 @@ class CNN:
 		self.dense_scheme	= return_config_value('HYPERPARAMETERS','dense_scheme',dtype=ListInteger)
 		self.conv_windows 	= return_config_value('HYPERPARAMETERS','conv_windows',dtype=ListInteger)
 		self.pool_windows	= return_config_value('HYPERPARAMETERS','pool_windows',dtype=ListInteger)
-		
+		self.beta_decay		= return_config_value('HYPERPARAMETERS','beta',dtype=Float)
 		
 		#learn rate params
 		self.learn_rate 	= return_config_value('LEARNING_RATE','learning_rate',dtype=Float)
@@ -64,8 +73,8 @@ class CNN:
 					layer_name = 'conv_{}_{}'.format(num_filters,self.conv_layers)
 				
 				w = tf.Variable(tf.truncated_normal([window_size,window_size,num_input_filters,num_filters],
-														stddev = 1.0/np.sqrt(num_filters*window_size*window_size),
-														name = '{}_w'.format(layer_name)))
+														stddev = 1.0/np.sqrt(num_filters*window_size*window_size)),
+														name = '{}_w'.format(layer_name))
 														
 				b = tf.Variable(tf.zeros(num_filters),name = '{}_b'.format(layer_name))
 				
@@ -95,7 +104,7 @@ class CNN:
 				
 				
 				if customName:
-					layer_name = '{}_{}_{}'.format(customName,num_filters,self.conv_layers)
+					layer_name = '{}_{}_{}'.format(customName,window_size,self.pool_layers)
 				else:
 					layer_name = 'pool_{}_{}'.format(window_size,self.pool_layers)
 				
@@ -129,11 +138,11 @@ class CNN:
 					layer_name = 'dense_{}_{}'.format(num_neurons,self.dense_layers)
 				
 				w = tf.Variable(tf.truncated_normal([input_dim,num_neurons],
-													stddev = 1.0/np.sqrt(input_dim),
-													name = '{}_w'.format(layer_name)))
+													stddev = 1.0/np.sqrt(input_dim)),
+													name = '{}_w'.format(layer_name))
 													
-				b = tf.Variable(tf.zeros([num_neurons],
-										name = '{}_b'.format(layer_name)))
+				b = tf.Variable(tf.zeros([num_neurons]),
+										name = '{}_b'.format(layer_name))
 										
 				dense = tf.matmul(input,w) + b
 				syn_output = activation(dense)
@@ -150,7 +159,7 @@ class CNN:
 			
 			with self.graph.as_default():
 			
-				global_step = tf.Variable(0)
+				global_step = tf.Variable(0, name = 'global_step')
 				self.learning_rate = tf.train.exponential_decay(self.learn_rate, 
 																global_step, 
 																decay_steps = self.decay_period, 
@@ -227,12 +236,27 @@ class CNN:
 				#post-processing
 				self.optimizer = tf.train.GradientDescentOptimizer(learning_rate = self.learning_rate)
 				
+				
+				# for i in range(len(self.weights)):
+					# print(self.weights[i])
+					# self.regularizer += tf.nn.l2_loss(tf.get_variable(self.weights[i]))
+					
+				l2_loss = []
+				for v in tf.global_variables():
+					if v.name[-1] == 'w':
+						l2_loss.append(tf.nn.l2_loss(v))
+				self.regularizer = self.beta_decay * sum(l2_loss)
+				
+				#TODO 
+				#implement gradient clipping?
+				
 				self.prediction = tf.argmax(self.logits,1)
 				self.cross_entropy = tf.nn.softmax_cross_entropy_with_logits_v2(self.logits,self.train_label)
-				self.loss = tf.reduce_mean(self.cross_entropy)
+				self.loss = tf.reduce_mean(self.cross_entropy) + self.regularizer
 				self.train_step = self.optimizer.minimize(self.loss)
 				
-				# self.regularizer = self.lambda_ * tf.nn.l2_loss(weight)
+				self.save_path = generate_save_path(pooling_scheme = self.pooling_scheme,
+													dense_scheme = self.dense_scheme)
 				self.saver = tf.train.Saver()
 				
 if __name__ == '__main__':
