@@ -1,5 +1,7 @@
 import tensorflow as tf
 from config import return_config_value
+from util import *
+
 #create config params to store network params?
 #static params kept for easy reference and editing, can be made dynamic by calling util
 
@@ -15,6 +17,7 @@ class CNN:
 		self.img_size 		= return_config_value('HYPERPARMATERS','img_size')
 		self.num_channels	= return_config_value('HYPERPARMATERS','num_channels')
 		self.pooling_scheme = return_config_value('HYPERPARMATERS','pooling_scheme')
+		self.dense_scheme	= return_config_value('HYPERPARMATERS','dense_scheme')
 		self.conv_windows 	= return_config_value('HYPERPARMATERS','conv_windows')
 		self.pool_windows	= return_config_value('HYPERPARMATERS','pool_windows')
 		
@@ -27,6 +30,7 @@ class CNN:
 		#counter determining number of layers in model
 		self.pool_layers = 0
 		self.conv_layers = 0
+		self.dense_layers= 0
 		
 		#logging
 		print('{} layers detected'.format(len(self.conv_windows)))
@@ -45,9 +49,9 @@ class CNN:
 				stride_window = [1,stride,stride,1]
 				layer_name = 'conv_{}_{}'.format(num_filters,self.conv_layers)
 				
-				w = tf.Variable(tf.truncated_normal([window_size,window_size,num_input_filters,num_filters),
+				w = tf.Variable(tf.truncated_normal([window_size,window_size,num_input_filters,num_filters],
 														stddev = 1.0/np.sqrt(num_filters*window_size*window_size),
-														name = '{}_w'.format(layer_name))
+														name = '{}_w'.format(layer_name)))
 														
 				b = tf.Variable(tf.zeros(num_filters),name = '{}_b'.format(layer_name))
 				
@@ -61,7 +65,7 @@ class CNN:
 				#apply normalization?
 				syn_output = activation(conv)
 				
-				return syn_output,num_filters
+				return syn_output,num_filters,layer_name
 				
 			def pooling(input,
 						window_size,
@@ -78,37 +82,56 @@ class CNN:
 										padding = padding,
 										name = layer_name)
 										
-				return pool
+				return pool,layer_name
 				
+			def dense(input,
+						input_dim,
+						num_neurons,
+						activation):
+				layer_name = 'dense_{}_{}'.format(num_neurons,self.dense_layers)
 				
+				w = tf.Variable(tf.truncated_normal([input_dim,num_neurons],
+													stddev = 1.0/np.sqrt(input_dim),
+													name = '{}_w'.format(layer_name)))
+													
+				b = tf.Variable(tf.zeros([input_dim,num_neurons],
+										name = '{}_w'.format(layer_name)))
+										
+				dense = tf.matmul(input,w) + b_fc
+				syn_output = activation(dense)
+				
+				return syn_output
 			
 			with self.graph_as_default():
-				input_vectors = [0 for i in range(len(conv_windows))]
-				input_vectors[0] = self.input
+				self.train_image = tf.placeholder(tf.float32, shape=[1,self.img_size*self.img_size*self.num_channels])
+				self.train_label = tf.placeholder(tf.float32, shape=[1,len(list(CLASSES))])
 				
-				self.image = tf.placeholder(tf.float32,[self.img_size*self.img_size*self.num_channels]
+
 				conv_iter,pool_iter = 0,0
+				layers = []
 				for l in range(len(self.pooling_scheme)):
 					if input_vector is None:
-						input_vector = self.input_image
+						input_vector = self.train_image
 						prev_num_filters = self.num_channels
 						
 					if pooling_scheme[l] == 1:
-						input_vector = pool(input = input_vector,
+						input_vector,vector_name = pool(input = input_vector,
 											window_size = self.pool_windows[pool_iter],
 											stride = 2,
 											padding = "VALID")
 						pool_iter+=1
+						layers.append(vector_name)
 						
 					elif pooling_scheme[l] == 0:
-						input_vector,prev_num_filters = convolution(input = input_vector,
+						input_vector,prev_num_filters,vector_name = convolution(input = input_vector,
 																	num_input_filters = prev_num_filters,
 																	window_size = self.conv_window[conv_iter],
 																	activation = tf.nn.relu,
 																	stride = 2,
 																	padding = "VALID")
-									
 						conv_iter+=1
+						layers.append(vector_name)
+						
 					else:
 						raise RuntimeError('pooling scheme value {} at layer {] is not valid'.format(pooling_scheme[l],l))
 					
@@ -117,11 +140,19 @@ class CNN:
 				#check layers constructed properly
 				if (pool_iter+conv_iter) != len(self.pooling_scheme):
 					raise RunTimeWarning('{} convolution layers and {} pooling layers were added, but there are {} layers in pooling scheme. check config.ini!'.format(conv_iter,pool_iter,len(self.pooling_scheme)))
-	
+					
+				#iterate layer names
+				for layer in layers:
+					print(layer)
+					
 				#flatten filters and add dense layer(s)
 				
-				dim = pool_2.get_shape()[1].value * pool_2.get_shape()[2].value * pool_2.get_shape()[3].value 
-				pool_2_flat = tf.reshape(pool_2, [-1, dim]) #flatten 3 channels into single channel
+				dim = input_vector.get_shape()[1].value * input_vector.get_shape()[2].value * input_vector.get_shape()[3].value 
+				conv_out = tf.reshape(input_vector, [-1, dim]) #flatten filters into single image
+				
+				dense(conv_out,
+						input_dim = dim,
+						num_neurons = num_neurons,activation)
 				fc_ = tf.nn.relu(tf.matmul(pool_2_flat,W_fc) + b_fc)
 				
 				#output layer
