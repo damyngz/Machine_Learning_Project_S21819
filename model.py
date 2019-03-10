@@ -58,13 +58,13 @@ class CNN:
 		with tf.device('/device:GPU:0'):
 			
 			def convolution(input,
-							num_input_filters,
-							num_filters,
-							window_size,
-							activation,
-							stride=1,
-							padding='SAME',
-							customName = None):
+				num_input_filters,
+				num_filters,
+				window_size,
+				activation,
+				stride=1,
+				padding='SAME',
+				customName = None):
 				
 				self.conv_layers +=1
 				stride_window = [1,stride,stride,1]
@@ -75,16 +75,16 @@ class CNN:
 					layer_name = 'conv_{}_{}'.format(num_filters,self.conv_layers)
 				
 				w = tf.Variable(tf.truncated_normal([window_size,window_size,num_input_filters,num_filters],
-														stddev = 1.0/np.sqrt(num_filters*window_size*window_size)),
-														name = '{}_w'.format(layer_name))
+									stddev = 1.0/np.sqrt(num_filters*window_size*window_size)),
+									name = '{}_w'.format(layer_name))
 														
 				b = tf.Variable(tf.zeros(num_filters),name = '{}_b'.format(layer_name))
 				
 				conv = tf.nn.conv2d(input, 
-									filter=w,
-									strides=stride_window,
-									padding=padding,
-									name = layer_name) + b
+					filter=w,
+					strides=stride_window,
+					padding=padding,
+					name = layer_name) + b
 				
 				#TODO
 				#apply normalization?
@@ -97,10 +97,10 @@ class CNN:
 				return syn_output,num_filters,layer_name
 				
 			def pooling(input,
-						window_size,
-						stride=1,
-						padding='SAME',
-						customName = None):
+				window_size,
+				stride=1,
+				padding='SAME',
+				customName = None):
 						
 				self.pool_layers+=1
 				
@@ -127,10 +127,10 @@ class CNN:
 				return pool,layer_name
 				
 			def dense(input,
-						input_dim,
-						num_neurons,
-						activation,
-						customName = None):
+				input_dim,
+				num_neurons,
+				activation,
+				customName = None):
 						
 				self.dense_layers += 1
 				
@@ -163,10 +163,10 @@ class CNN:
 			
 				global_step = tf.Variable(0, name = 'global_step')
 				self.learning_rate = tf.train.exponential_decay(self.learn_rate, 
-																global_step, 
-																decay_steps = self.decay_period, 
-																decay_rate = self.decay_rate, 
-																staircase = self.staircase)
+					global_step, 
+					decay_steps = self.decay_period, 
+					decay_rate = self.decay_rate, 
+					staircase = self.staircase)
 																
 				self.train_image = tf.placeholder(tf.float32, shape=[1,self.img_size*self.img_size*self.num_channels])
 				self.train_label = tf.placeholder(tf.float32, shape=[1,len(list(CLASS))])
@@ -188,12 +188,12 @@ class CNN:
 						
 					elif self.pooling_scheme[l] > 0:
 						input_vector,prev_num_filters,vector_name = convolution(input = input_vector,
-																	num_input_filters = prev_num_filters,
-																	num_filters = self.pooling_scheme[l],
-																	window_size = self.conv_windows[self.conv_layers],
-																	activation = tf.nn.relu,
-																	stride = 1,
-																	padding = "VALID")
+							num_input_filters = prev_num_filters,
+							num_filters = self.pooling_scheme[l],
+							window_size = self.conv_windows[self.conv_layers],
+							activation = tf.nn.relu,
+							stride = 1,
+							padding = "VALID")
 
 						self.weights.append('{}_w'.format(vector_name))
 						
@@ -220,9 +220,9 @@ class CNN:
 						prev_num_filters = dim
 						
 					input_vector,prev_num_filters, layer = dense(input_vector,
-																input_dim = prev_num_filters,
-																num_neurons = self.dense_scheme[l],
-																activation = tf.nn.relu)
+						input_dim = prev_num_filters,
+						num_neurons = self.dense_scheme[l],
+						activation = tf.nn.relu)
 						    
 
 				#iterate layer names
@@ -231,9 +231,9 @@ class CNN:
 					
 				#output layer
 				self.logits,_,vector_name = dense(input_vector,
-										input_dim = prev_num_filters,
-										num_neurons = len(list(CLASS)),
-										activation = linear)
+					input_dim = prev_num_filters,
+					num_neurons = len(list(CLASS)),
+					activation = linear)
 									
 				#post-processing
 				self.optimizer = tf.train.GradientDescentOptimizer(learning_rate = self.learning_rate)
