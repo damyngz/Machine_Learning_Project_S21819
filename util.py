@@ -25,10 +25,10 @@ DEFAULT = {
 
 #default config hyperparam section
 CFG_DEFAULT_HYPERPARAM = {
-'pooling_scheme':	[0,0,1,0,0,1,0,0,1,0,0,1,0,1],
+'pooling_scheme':	[64,128,0,128,156,0,156,192,0,192,256,0,256,0],
 'dense_scheme'	:	[256,128],	
-'pool_windows'	:	[5,3,3,3,3],
-'conv_windows' 	: 	[64,64,64,64,64,64,64,64,64],
+'pool_windows'	:	[3,3,3,3,3],
+'conv_windows' 	: 	[3,3,3,3,3,3,3,3,3],
 'img_size' 		:	128,
 'num_channels'	:	3,
 'beta'			:	0.0001,

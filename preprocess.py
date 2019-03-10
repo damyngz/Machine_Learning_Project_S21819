@@ -17,10 +17,10 @@ CLASS SPECIFICATION
 import os
 import pickle
 import imageio
-from numpy import array,reshape,zeros,uint8
+from numpy import array,reshape,zeros,uint8,arange
+from tensorflow import one_hot
 import matplotlib as plt
 from PIL import Image
-from numpy import array
 from skimage.transform import resize as imresize
 
 from config import flag
@@ -79,12 +79,21 @@ def convert_to_thumbnail():
 
 #load train images into array
 def load_train_images():
-	x = []
+	x,y = [],[]
 	for _,grass_type in CLASS.items():
 		for file in os.listdir(train_path_thumb+grass_type):
 			img = imageio.imread(train_path_thumb+grass_type+'/'+file)
-			x.append([img,grass_type])
-	return x
+			x.append(img)
+			y.append(grass_type)
+			
+	y_ = zeros((len(x),len(list(CLASS))))
+	for i in range(len(y)):
+		y_[i,CLASS_INVERSE[y[i]]-1] = 1
+		
+	return x,y_
+	
+# trainY = np.zeros((train_Y.shape[0], NUM_CLASSES))
+# trainY[np.arange(train_Y.shape[0]), train_Y-1] = 1 #one hot matrix
 	
 def load_test_images():
 	y = []

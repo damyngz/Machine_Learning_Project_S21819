@@ -10,7 +10,8 @@ from util import *
 working_dir = '/graphs/'
 # tf.Session(config = tf.ConfigProto(log_device_replacement=True))
 def generate_save_path(pooling_scheme,dense_scheme):
-	s = os.getcwd()
+	root = os.getcwd()
+	s = ''
 	for i in pooling_scheme:
 		if i != 0:
 			s+='_{}'.format(i)
@@ -19,7 +20,7 @@ def generate_save_path(pooling_scheme,dense_scheme):
 	for i in dense_scheme:
 		s+= '{}d'.format(i)
 		
-	return working_dir + s
+	return root + working_dir + s + '.ckpt'
 	
 class CNN:
 	def __init__(self):
@@ -257,7 +258,7 @@ class CNN:
 				self.loss = tf.reduce_mean(self.cross_entropy) + self.regularizer
 				self.train_step = self.optimizer.minimize(self.loss)
 				
-				self.save_path = generate_save_path(pooling_scheme = self.pooling_scheme,
+				self.data_path = generate_save_path(pooling_scheme = self.pooling_scheme,
 													dense_scheme = self.dense_scheme)
 				self.saver = tf.train.Saver()
 				
@@ -295,8 +296,8 @@ def train_model(model, data, labels, shuffle = False, preds = [0,0]):
 				preds.append(score)
 
 	
-			accuracy = preds[0]	/(sum(preds))		
-			print(accuracy)
+				accuracy = preds[0]	/(sum(preds))		
+				print(accuracy)
 			
 		save_path = model.saver.save(sess, model.data_path)
 		print("Model saved in path: %s" % save_path)
