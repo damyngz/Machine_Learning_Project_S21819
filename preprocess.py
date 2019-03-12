@@ -23,8 +23,9 @@ import matplotlib as plt
 from PIL import Image
 from skimage.transform import resize as imresize
 
-from config import flag
+from config import *
 from util import *
+from dtype import Integer
 train_path_img = os.getcwd() + '/data/train/img/'
 train_path_thumb = os.getcwd() + '/data/train/thumb/'
 test_path_img = os.getcwd() + '/data/test/img/'
@@ -65,6 +66,7 @@ def create_dummy_files():
 		
 def convert_to_thumbnail():	
 
+	resize_dim = return_config_value('HYPERPARAMETERS','img_size',dtype=Integer)
 	resize_dim = config['HYPERPARAMETERS']['img_size']
 	#train images
 	for _,grass_type in CLASS.items():

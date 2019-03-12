@@ -1,2 +1,2 @@
-model_checkpoint_path: "D:\\CZ4041 Machine Learning\\project\\Machine_Learning_Project_S21819/graphs/_64_128_p_128_156_p_156_192_p_192_256_p_256_p256d128d.ckpt"
-all_model_checkpoint_paths: "D:\\CZ4041 Machine Learning\\project\\Machine_Learning_Project_S21819/graphs/_64_128_p_128_156_p_156_192_p_192_256_p_256_p256d128d.ckpt"
+model_checkpoint_path: "D:\\CZ4041 Machine Learning\\project\\Machine_Learning_Project_S21819/graphs/_32_64_p_128_p256d128d.ckpt"
+all_model_checkpoint_paths: "D:\\CZ4041 Machine Learning\\project\\Machine_Learning_Project_S21819/graphs/_32_64_p_128_p256d128d.ckpt"

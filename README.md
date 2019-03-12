@@ -1,4 +1,4 @@
-# Machine_Learning_Project_S21819
++# Machine_Learning_Project_S21819
 based on  
 https://www.kaggle.com/miklgr500/keras-simple-model-0-97103-best-public-score  
   https://www.kaggle.com/c/plant-seedlings-classification

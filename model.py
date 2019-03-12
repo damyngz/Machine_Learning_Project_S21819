@@ -167,8 +167,9 @@ class CNN:
 					decay_steps = self.decay_period, 
 					decay_rate = self.decay_rate, 
 					staircase = self.staircase)
-																
-				self.train_image = tf.placeholder(tf.float32, shape=[1,self.img_size*self.img_size*self.num_channels])
+					
+				self.train_image = tf.placeholder(tf.float32, shape=[1,self.img_size,self.img_size,self.num_channels])												
+				# self.train_image = tf.placeholder(tf.float32, shape=[1,self.img_size*self.img_size*self.num_channels])
 				self.train_label = tf.placeholder(tf.float32, shape=[1,len(list(CLASS))])
 				
 				input_image = tf.reshape(self.train_image, [-1, self.img_size, self.img_size, self.num_channels])
@@ -274,8 +275,8 @@ def train_model(model, data, labels, shuffle = False, preds = [0,0]):
 	seed = model.seed
 	iter = [i for i in range(len(data))]
 	np.random.shuffle(iter)
-	num_epochs = return_config_value('HYPERPARAMETERS','num_epochs')
-	
+	num_epochs = return_config_value('HYPERPARAMETERS','num_epochs',dtype=Integer)
+	num_channels = return_config_value('HYPERPARAMETERS','num_channels',dtype=Integer)
 
 	with tf.Session(graph=model.graph) as sess:
 		model.saver.restore(sess,model.data_path)
@@ -286,17 +287,22 @@ def train_model(model, data, labels, shuffle = False, preds = [0,0]):
 			preds = [0,0]
 			for step in iter:			
 				feed_dict = {}	
-				# x = np.reshape(data[step], (data[step].shape[0], 1))
-				# y = np.reshape(labels[step], (1, 1))
+				# print(data.shape)
+				
+				data_ = np.reshape(data[step], (1,data[step].shape[0],data[step].shape[1],num_channels))
+				label_ = np.reshape(labels[step], (1, len(list(CLASS))))
 
-				feed_dict[model.train_data] = x[step]
-				feed_dict[model.train_labels] = y[step]
+				print(data_.shape)
+				feed_dict[model.train_image] = data_
+				feed_dict[model.train_label] = label_
 				_, score, pred = sess.run([model.train_step, model.correct_prediction, model.logits], feed_dict=feed_dict)
 				
-				preds.append(score)
+				print(int(score))
+				preds[int(score)] +=1
+				print(preds)
 
 	
-				accuracy = preds[0]	/(sum(preds))		
+				accuracy = preds[1]	/(sum(preds))		
 				print(accuracy)
 			
 		save_path = model.saver.save(sess, model.data_path)
