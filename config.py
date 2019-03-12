@@ -40,13 +40,13 @@ def prerun_check():
 	if _init_run == 'yes':
 		print('building images')
 		from preprocess import preprocess
-		# preprocess()
+		preprocess()
 	elif _init_run != 'no':
 		print('config.ini corrupted, re-creating files')	
 		load_config(force_build = True)
 		print('building images')
 		from preprocess import preprocess
-		# preprocess()
+		preprocess()
 		
 	print('pre-run success')
 		

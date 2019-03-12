@@ -67,11 +67,13 @@ def create_dummy_files():
 def convert_to_thumbnail():	
 
 	resize_dim = return_config_value('HYPERPARAMETERS','img_size',dtype=Integer)
-	resize_dim = config['HYPERPARAMETERS']['img_size']
+	# resize_dim = config['HYPERPARAMETERS']['img_size']
+	
 	#train images
 	for _,grass_type in CLASS.items():
 		for file in os.listdir(train_path_img+grass_type):
 			img = Image.open(train_path_img+grass_type+'/'+file)
+			img.convert("RGB")
 			img.resize((resize_dim,resize_dim),Image.BICUBIC).save(train_path_thumb+grass_type+'/'+file)
 			
 	#test images
