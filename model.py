@@ -35,6 +35,7 @@ class CNN:
 		self.conv_windows 	= return_config_value('HYPERPARAMETERS','conv_windows',dtype=ListInteger)
 		self.pool_windows	= return_config_value('HYPERPARAMETERS','pool_windows',dtype=ListInteger)
 		self.beta_decay		= return_config_value('HYPERPARAMETERS','beta',dtype=Float)
+		self.batch_size		= return_config_value('HYPERPARAMETERS','batch_size',dtype=Integer)
 		self.seed			= return_config_value('HYPERPARAMETERS','seed',dtype=Integer)
 		
 		#learn rate params
