@@ -253,8 +253,11 @@ class CNN:
 						l2_loss.append(tf.nn.l2_loss(v))
 				self.regularizer = self.beta_decay * sum(l2_loss)
 				
-				#TODO 
-				#implement gradient clipping?
+				#gradient clipping
+				# gradients, vars = zip(*optimizer.compute_gradients(self.loss))
+				# gradients, _ = tf.clip_by_global_norm(gradients, NN_GRADIENT_CLIPPING)  # gradient clipping
+				# self.optimizer = optimizer.apply_gradients(zip(gradients, vars), global_step=global_step)
+				# self.gradients = gradients
 				
 				self.softmax_logits = tf.nn.softmax(self.logits)
 				self.prediction = tf.argmax(self.logits,1)
