@@ -6,7 +6,8 @@ import os
 from util import *
 
 #TODO implement batch 
-
+config_ = tf.ConfigProto()
+config_.gpu_options.allow_growth = True
 working_dir = '/graphs/'
 # tf.Session(config = tf.ConfigProto(log_device_replacement=True))
 def generate_save_path(pooling_scheme,dense_scheme):
@@ -135,7 +136,7 @@ class CNN:
 				self.dense_layers += 1
 				
 				if customName:
-					layer_name = '{}_{}_{}'.format(customName,num_filters,self.conv_layers)
+					layer_name = '{}_{}_{}'.format(customName,num_neurons,self.conv_layers)
 				else:
 					layer_name = 'dense_{}_{}'.format(num_neurons,self.dense_layers)
 				
@@ -205,7 +206,7 @@ class CNN:
 					
 				#check layers constructed properly
 				if (self.pool_layers+self.conv_layers) != len(self.pooling_scheme):
-					raise RunTimeWarning('{} convolution layers and {} pooling layers were added, but there are {} layers in pooling scheme. check config.ini!'.format(conv_iter,pool_iter,len(self.pooling_scheme)))
+					raise RunTimeWarning('{} convolution layers and {} pooling layers were added, but there are {} layers in pooling scheme. check config.ini!'.format(self.conv_layers,self.pool_layers,len(self.pooling_scheme)))
 					
 				
 					
@@ -246,16 +247,19 @@ class CNN:
 					
 				l2_loss = []
 				for v in tf.global_variables():
-					if v.name[-1] == 'w':
+					# print(v.name)
+					if v.name[-3] == 'w':
+						print('!{}'.format(v.name))
 						l2_loss.append(tf.nn.l2_loss(v))
 				self.regularizer = self.beta_decay * sum(l2_loss)
 				
 				#TODO 
 				#implement gradient clipping?
 				
+				self.softmax_logits = tf.nn.softmax(self.logits)
 				self.prediction = tf.argmax(self.logits,1)
 				self.correct_prediction = tf.cast(tf.equal(tf.argmax(self.logits, 1), tf.argmax(self.train_label, 1)), tf.float32)
-				self.cross_entropy = tf.nn.softmax_cross_entropy_with_logits_v2(self.logits,self.train_label)
+				self.cross_entropy = tf.nn.softmax_cross_entropy_with_logits_v2(logits = self.logits,labels = self.train_label)
 				self.loss = tf.reduce_mean(self.cross_entropy) + self.regularizer
 				self.train_step = self.optimizer.minimize(self.loss)
 				
@@ -289,14 +293,16 @@ def train_model(model, data, labels, shuffle = False, preds = [0,0]):
 				feed_dict = {}	
 				# print(data.shape)
 				
-				data_ = np.reshape(data[step], (1,data[step].shape[0],data[step].shape[1],num_channels))
+				data_ = data[step][:,:,:model.num_channels]
+				data_ = np.reshape(data_, (1,data_.shape[0],data_.shape[1],data_.shape[2]))
 				label_ = np.reshape(labels[step], (1, len(list(CLASS))))
 
 				print(data_.shape)
 				feed_dict[model.train_image] = data_
 				feed_dict[model.train_label] = label_
-				_, score, pred = sess.run([model.train_step, model.correct_prediction, model.logits], feed_dict=feed_dict)
+				_, score, pred = sess.run([model.train_step, model.correct_prediction, model.softmax_logits], feed_dict=feed_dict)
 				
+				print(label_,pred)
 				print(int(score))
 				preds[int(score)] +=1
 				print(preds)

@@ -52,33 +52,41 @@ def dummy():
 	
 def create_dummy_files():
 	dummy = array([[[0,0,0],[1,1,1]]]).astype(uint8)
+	print('dummy-ing train data')
 	for _,grass_type in CLASS.items():
 		for file in os.listdir(train_path_img+grass_type):
 			fn = train_path_thumb+grass_type+'/'+file
 			with open(fn,'w') as file:
 				file.write('1')
 			imageio.imsave(fn,dummy)
+		
+	print('dummy-ing test data')
 	for file in os.listdir(test_path_img):
 		fn = test_path_thumb+'/'+file
-		with open(fn,'w') as file:
-			file.write('1')
+		# with open(fn,'w') as file:
+			# file.write('1')
 		imageio.imsave(fn,dummy)
 		
 def convert_to_thumbnail():	
 
 	resize_dim = return_config_value('HYPERPARAMETERS','img_size',dtype=Integer)
+	num_channels = return_config_value('HYPERPARAMETERS','num_channels',dtype=Integer)
 	# resize_dim = config['HYPERPARAMETERS']['img_size']
 	
 	#train images
+	print('converting train data')
 	for _,grass_type in CLASS.items():
 		for file in os.listdir(train_path_img+grass_type):
 			img = Image.open(train_path_img+grass_type+'/'+file)
 			img.convert("RGB")
+			# print(img.shape)
 			img.resize((resize_dim,resize_dim),Image.BICUBIC).save(train_path_thumb+grass_type+'/'+file)
 			
 	#test images
+	print('converting test data')
 	for file in os.listdir(test_path_thumb):
 		img = Image.open(test_path_img+'/'+file)
+		img.convert("RGB")
 		img.resize((resize_dim,resize_dim),Image.BICUBIC).save(test_path_thumb+'/'+file)
 
 #load train images into array
@@ -86,7 +94,9 @@ def load_train_images():
 	x,y = [],[]
 	for _,grass_type in CLASS.items():
 		for file in os.listdir(train_path_thumb+grass_type):
-			img = imageio.imread(train_path_thumb+grass_type+'/'+file)
+			fn = train_path_thumb+grass_type+'/'+file
+			# print(fn)
+			img = imageio.imread(fn)
 			x.append(img)
 			y.append(grass_type)
 			

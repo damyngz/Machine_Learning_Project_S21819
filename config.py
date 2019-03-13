@@ -53,5 +53,7 @@ def prerun_check():
 def flag(flag_,flag = None):
 	try:
 		config['DEFAULT'][flag_] = flag
+		with open(config_path,'w') as file:
+			config.write(file)
 	except KeyError:
 		raise RuntimeError('config flag {} does not exist.'.format(flag_))
