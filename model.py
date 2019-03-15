@@ -170,11 +170,15 @@ class CNN:
 					decay_rate = self.decay_rate, 
 					staircase = self.staircase)
 					
-				self.train_image = tf.placeholder(tf.float32, shape=[1,self.img_size,self.img_size,self.num_channels])												
-				# self.train_image = tf.placeholder(tf.float32, shape=[1,self.img_size*self.img_size*self.num_channels])
-				self.train_label = tf.placeholder(tf.float32, shape=[1,len(list(CLASS))])
+					
+				self.train_image = tf.placeholder(tf.float32, shape=[self.batch_size,self.img_size,self.img_size,self.num_channels])												
+				self.train_label = tf.placeholder(tf.float32, shape=[self.batch_size,len(list(CLASS))])
+				# self.train_image = tf.placeholder(tf.float32, shape=[1,self.img_size,self.img_size,self.num_channels])												
+				# self.train_label = tf.placeholder(tf.float32, shape=[1,len(list(CLASS))])
 				
-				input_image = tf.reshape(self.train_image, [-1, self.img_size, self.img_size, self.num_channels])
+				input_image = tf.reshape(self.train_image, [self.batch_size, self.img_size, self.img_size, self.num_channels])
+				# input_image = tf.reshape(self.train_image, [-1, self.img_size, self.img_size, self.num_channels])
+				
 				input_vector = None
 				for l in range(len(self.pooling_scheme)):
 					if input_vector is None:
@@ -203,7 +207,6 @@ class CNN:
 					else:
 						raise RuntimeError('pooling scheme value {} at layer {] is not valid'.format(pooling_scheme[l],l))
 					print(self.layers[-1],input_vector.shape)
-					# input_vector,prev_num_filters = convolution(input = input_vector,num_input_filters = prev_num_filters, window_size = conv_windows[l],activation = (tf.nn.relu),stride = 2, padding = 'VALID')
 					
 				#check layers constructed properly
 				if (self.pool_layers+self.conv_layers) != len(self.pooling_scheme):
